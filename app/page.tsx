@@ -2,21 +2,63 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import Loading from "./components/Loading";
 
 export default function Home() {
+  const [isLoading, setIsLoading] = useState(true);
   const [slide, setSlide] = useState(1);
   const [line1, setLine1] = useState("");
   const [line2, setLine2] = useState("");
   const [phase, setPhase] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
+  const [isReady, setIsReady] = useState(false);
+
+  // Preload main page assets during loading
+  useEffect(() => {
+    if (!isLoading) {
+      // Small delay to ensure smooth transition
+      const readyTimer = setTimeout(() => {
+        setIsReady(true);
+      }, 100);
+      return () => clearTimeout(readyTimer);
+    }
+  }, [isLoading]);
+
+  const handleLoadingComplete = () => {
+    setIsLoading(false);
+  };
 
   useEffect(() => {
-    const timer = setTimeout(() => setSlide(2), 2000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (!isReady) return;
+
+    const handleScroll = (e: WheelEvent) => {
+      if (slide === 1 && e.deltaY > 0) {
+        setSlide(2);
+      }
+    };
+
+    // Touch support
+    let touchStartY = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+    const handleTouchEnd = (e: TouchEvent) => {
+      const delta = touchStartY - e.changedTouches[0].clientY;
+      if (slide === 1 && delta > 50) setSlide(2);
+    };
+
+    window.addEventListener("wheel", handleScroll);
+    window.addEventListener("touchstart", handleTouchStart);
+    window.addEventListener("touchend", handleTouchEnd);
+    return () => {
+      window.removeEventListener("wheel", handleScroll);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [slide, isReady]);
 
   useEffect(() => {
-    if (slide !== 2) return;
+    if (slide !== 2 || !isReady) return;
 
     const typingSpeed = 100;
     const backspaceSpeed = 50;
@@ -25,7 +67,6 @@ export default function Home() {
     let timeout: ReturnType<typeof setTimeout>;
 
     if (phase === 0) {
-      // Type "Hey,"
       const target = "Hey,";
       if (charIndex < target.length) {
         timeout = setTimeout(() => {
@@ -35,9 +76,7 @@ export default function Home() {
       } else {
         timeout = setTimeout(() => { setPhase(1); setCharIndex(0); }, pauseBetween);
       }
-
     } else if (phase === 1) {
-      // Type "I'm Clueless" on line 2
       const target = "I'm Clueless";
       if (charIndex < target.length) {
         timeout = setTimeout(() => {
@@ -47,9 +86,7 @@ export default function Home() {
       } else {
         timeout = setTimeout(() => { setPhase(2); setCharIndex(target.length); }, pauseBetween * 2);
       }
-
     } else if (phase === 2) {
-      // Backspace "I'm Clueless" on line 2
       const target = "I'm Clueless";
       if (charIndex > 0) {
         timeout = setTimeout(() => {
@@ -59,9 +96,7 @@ export default function Home() {
       } else {
         timeout = setTimeout(() => { setPhase(3); setCharIndex(0); }, pauseBetween);
       }
-
     } else if (phase === 3) {
-      // Type "I'm Mansha" on line 2
       const target = "I'm Mansha";
       if (charIndex < target.length) {
         timeout = setTimeout(() => {
@@ -72,10 +107,29 @@ export default function Home() {
     }
 
     return () => clearTimeout(timeout);
-  }, [phase, charIndex, slide]);
+  }, [phase, charIndex, slide, isReady]);
 
+  // Show loading page first
+  if (isLoading) {
+    return <Loading onLoadingComplete={handleLoadingComplete} />;
+  }
+
+  // Main Page - only render fully when ready
   return (
-    <div className="relative h-screen w-screen flex justify-center items-center overflow-hidden bg-black">
+    <div 
+      className="relative h-screen w-screen flex justify-center items-center overflow-hidden bg-black"
+      style={{
+        opacity: isReady ? 1 : 0,
+        transition: "opacity 0.3s ease-in-out"
+      }}
+    >
+      {/* Preload images in background during loading */}
+      {isLoading && (
+        <div style={{ display: "none" }}>
+          <Image src="/skull.png" alt="preload" width={1} height={1} />
+          <img src="/gear.png" alt="preload" width={1} height={1} />
+        </div>
+      )}
 
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/50" style={{ zIndex: 1 }} />
@@ -142,6 +196,57 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Scroll indicator — bottom left, only on slide 1 */}
+      <div
+        style={{
+          position: "absolute",
+          top: "32px",
+          left: "32px",
+          zIndex: 30,
+          opacity: slide === 1 ? 1 : 0,
+          transition: "opacity 0.6s ease-in-out",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "6px",
+        }}
+      >
+        {/* Animated mouse icon */}
+        <div
+          style={{
+            width: "20px",
+            height: "32px",
+            border: "2px solid rgba(255,255,255,0.4)",
+            borderRadius: "10px",
+            position: "relative",
+          }}
+        >
+          <div
+            style={{
+              width: "3px",
+              height: "6px",
+              background: "rgba(255,200,80,0.8)",
+              borderRadius: "2px",
+              position: "absolute",
+              top: "5px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              animation: "scrollDot 1.5s ease-in-out infinite",
+            }}
+          />
+        </div>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.35)",
+            fontSize: "0.55rem",
+            letterSpacing: "0.3em",
+            textTransform: "uppercase",
+          }}
+        >
+          scroll
+        </p>
+      </div>
+
       {/* Text — left side */}
       <div
         style={{
@@ -167,11 +272,9 @@ export default function Home() {
             textShadow: "0 0 40px rgba(255,160,0,0.5)",
           }}
         >
-          {/* Line 1 — always "Hey," once typed */}
           <span style={{ display: "block" }}>
             {line1}{phase === 0 && <span className="animate-pulse">|</span>}
           </span>
-          {/* Line 2 — "I'm Clueless" / "I'm Mansha" */}
           <span style={{ display: "block", minHeight: "1.1em" }}>
             {line2}{phase !== 0 && <span className="animate-pulse">|</span>}
           </span>
