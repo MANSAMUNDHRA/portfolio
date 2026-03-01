@@ -4,6 +4,16 @@ import { useState } from "react";
 
 const pages = [
   {
+    id: "about",
+    label: "About",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+    ),
+  },
+  {
     id: "skills",
     label: "Skills",
     icon: (
@@ -44,25 +54,6 @@ const pages = [
     ),
   },
   {
-    id: "thoughts",
-    label: "Thoughts",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-      </svg>
-    ),
-  },
-  {
-    id: "about",
-    label: "About",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <circle cx="12" cy="8" r="4"/>
-        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-      </svg>
-    ),
-  },
-  {
     id: "connect",
     label: "Connect",
     icon: (
@@ -92,7 +83,6 @@ export default function NavBar({ activePage, onNavigate }: NavBarProps) {
       display: "flex",
       alignItems: "center",
     }}>
-
       {/* Pill container */}
       <div style={{
         display: "flex",
@@ -105,10 +95,6 @@ export default function NavBar({ activePage, onNavigate }: NavBarProps) {
         padding: "6px 8px",
         boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)",
       }}>
-
-       
-
-
         {/* Nav items */}
         {pages.map((page) => {
           const isActive = activePage === page.id;
@@ -174,7 +160,6 @@ export default function NavBar({ activePage, onNavigate }: NavBarProps) {
             </button>
           );
         })}
-
       </div>
     </div>
   );

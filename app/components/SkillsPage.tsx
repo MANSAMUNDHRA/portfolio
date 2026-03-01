@@ -7,7 +7,7 @@ const skills = [
   { id: 2, title: "ANDROID DEVELOPER",    sub: "Native & cross-platform mobile",      short: "ANDROID",     bg: "#11212D" }, // Dark blue-green
   { id: 3, title: "ML RESEARCHER",        sub: "Applied ML — integration & research", short: "ML",          bg: "#253745" }, // Medium blue-gray
   { id: 4, title: "BACKEND DEVELOPER",    sub: "APIs · Databases · Architecture",     short: "BACKEND",     bg: "#4A5C6A" }, // Muted blue-gray
-  { id: 5, title: "AI ENGINEER",          sub: "Integrating AI into real products",   short: "AI",          bg: "#9BA8AB" }, // Light gray-blue
+  { id: 5, title: "AI ENGINEER",          sub: "Integrating AI into real products",   short: "AI",          bg: "#20c0e4" }, // Light gray-blue
   { id: 6, title: "LANGUAGES",            sub: "Java · C++ · Python",                short: "LANGUAGES",   bg: "#06141B" }, // Darkest (replaces light color)
 ];
 
@@ -55,7 +55,7 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: () => vo
     if (!el) return;
     
     let accumulated = 0;
-    const THRESHOLD = 50; // must accumulate this much delta before triggering
+    const THRESHOLD = 100; // must accumulate this much delta before triggering
     
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -111,7 +111,7 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: () => vo
 
       {/* ── HEADING ── */}
       <div style={{
-        position: "absolute", top: "8%",
+        position: "absolute", top: "15%",
         left: "50%", transform: "translateX(-50%)",
         textAlign: "center", zIndex: 10, width: "65%",
       }}>
