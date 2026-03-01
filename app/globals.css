@@ -115,3 +115,31 @@ body {
     transform: rotate(360deg);
   }
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glitch1 {
+  0%   { clip-path: inset(20% 0 60% 0); transform: translateX(-4px); }
+  25%  { clip-path: inset(60% 0 10% 0); transform: translateX(4px); }
+  50%  { clip-path: inset(40% 0 30% 0); transform: translateX(-2px); }
+  100% { clip-path: none; transform: none; }
+}
+
+@keyframes glitchLine {
+  0%   { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(0.3); }
+}
+
+@keyframes curtainDown {
+  0% {
+    clip-path: inset(100% 0 0 0);   /* fully hidden above */
+    transform: translateY(-20px);
+  }
+  100% {
+    clip-path: inset(0% 0 0 0);     /* fully revealed */
+    transform: translateY(0);
+  }
+}
