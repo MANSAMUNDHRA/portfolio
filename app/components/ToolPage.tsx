@@ -18,8 +18,8 @@ const streams = [
   },
   {
     label: "FRONTEND & MOBILE",
-    color: "#E8D8C4", // Cream
-    glow: "rgba(232,216,196,0.4)",
+    color: "#E8D8C4", // Light burgundy-pink
+    glow: "rgba(215,122,133,0.4)",
     tools: [
       { name: "HTML", icon: "🌐" },
       { name: "CSS", icon: "🎨" },
@@ -31,8 +31,8 @@ const streams = [
   },
   {
     label: "BACKEND",
-    color: "#E8D8C4", // Cream
-    glow: "rgba(232,216,196,0.4)",
+    color: "#E8D8C4", // Medium burgundy
+    glow: "rgba(184,84,95,0.4)",
     tools: [
       { name: "Node.js", icon: "⬡" },
       { name: "Express", icon: "EX" },
@@ -41,8 +41,8 @@ const streams = [
   },
   {
     label: "DATABASES",
-    color: "#E8D8C4", // Cream
-    glow: "rgba(232,216,196,0.4)",
+    color: "#E8D8C4", // Darker burgundy
+    glow: "rgba(154,63,74,0.4)",
     tools: [
       { name: "MongoDB", icon: "🍃" },
       { name: "Firebase", icon: "🔥" },
@@ -50,8 +50,8 @@ const streams = [
   },
   {
     label: "AI / ML",
-    color: "#E8D8C4", // Cream
-    glow: "rgba(232,216,196,0.4)",
+    color: "#E8D8C4", // Even darker burgundy
+    glow: "rgba(125,42,53,0.4)",
     tools: [
       { name: "Hugging Face", icon: "🤗" },
       { name: "OpenCV", icon: "👁" },
@@ -60,8 +60,8 @@ const streams = [
   },
   {
     label: "TOOLS & INFRA",
-    color: "#E8D8C4", // Cream
-    glow: "rgba(232,216,196,0.4)",
+    color: "#E8D8C4", // Darkest burgundy (about page primary)
+    glow: "rgba(86,28,36,0.4)",
     tools: [
       { name: "Git", icon: "⎇" },
       { name: "GitHub", icon: "⚙" },
@@ -71,7 +71,7 @@ const streams = [
   },
   {
     label: "CORE CS",
-    color: "#E8D8C4", // Cream
+    color: "#E8D8C4", // Cream again for variety
     glow: "rgba(232,216,196,0.4)",
     tools: [
       { name: "DSA", icon: "🌲" },
@@ -159,7 +159,7 @@ export default function ToolsPage({
       style={{
         width: "100%",
         height: "100%",
-        background: "#561C24", // Dark burgundy from about page
+        background: "#561C24", // Changed to about page dark burgundy
         position: "relative",
         overflow: "hidden",
         display: "flex",
@@ -172,7 +172,7 @@ export default function ToolsPage({
         top: mousePos.y - 150,
         width: "300px", height: "300px",
         borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(232,216,196,0.15) 0%, transparent 70%)",
+        background: "radial-gradient(circle, rgba(232,216,196,0.1) 0%, transparent 70%)",
         pointerEvents: "none",
         zIndex: 998,
         filter: "blur(10px)",
@@ -198,14 +198,14 @@ export default function ToolsPage({
           <p style={{
             fontSize: "0.6rem", letterSpacing: "0.5em",
             textTransform: "uppercase", fontFamily: "monospace",
-            color: "#E8D8C4", marginBottom: "6px",
+            color: "rgba(232,216,196,0.5)", marginBottom: "6px",
           }}>what i work with</p>
           <h2 style={{
             fontSize: "clamp(1.6rem, 2.5vw, 2.2rem)",
             fontFamily: "Georgia, serif", fontWeight: "800",
             textTransform: "uppercase", letterSpacing: "0.1em",
             color: "#E8D8C4",
-            textShadow: "0 0 20px rgba(232,216,196,0.3)",
+            textShadow: "0 0 20px rgba(232,216,196,0.15)",
           }}>TOOLS & STACK</h2>
         </div>
 
@@ -225,8 +225,8 @@ export default function ToolsPage({
                 fontFamily: "Georgia, serif",
                 fontSize: "0.75rem", fontWeight: "600",
                 letterSpacing: "0.06em", textTransform: "uppercase",
-                color: "#E8D8C4", textAlign: "right",
-                textShadow: `0 0 8px rgba(232,216,196,0.4)`,
+                color: stream.color, textAlign: "right",
+                textShadow: `0 0 8px ${stream.glow}`,
                 paddingTop: "6px",
                 opacity: visibleLabels[si] ? 1 : 0,
                 transform: visibleLabels[si] ? "translateX(0)" : "translateX(-12px)",
@@ -238,7 +238,7 @@ export default function ToolsPage({
               {/* Connector */}
               <div style={{
                 width: "16px", height: "1px", flexShrink: 0,
-                background: `linear-gradient(to right, transparent, #E8D8C4)`,
+                background: `linear-gradient(to right, transparent, ${stream.color}66)`,
                 marginTop: "10px",
                 opacity: visibleLabels[si] ? 1 : 0,
                 transition: "opacity 0.4s ease 0.1s",
@@ -258,9 +258,9 @@ export default function ToolsPage({
                       style={{
                         display: "flex", alignItems: "center", gap: "5px",
                         padding: "5px 12px",
-                        border: `1px solid ${isHov ? "#E8D8C4" : "rgba(232,216,196,0.3)"}`,
+                        border: `1px solid ${isHov ? stream.color : stream.color + "60"}`,
                         borderRadius: "20px",
-                        background: isHov ? "rgba(232,216,196,0.15)" : "rgba(232,216,196,0.05)",
+                        background: isHov ? `${stream.color}25` : `${stream.color}15`,
                         cursor: "default",
                         opacity: show ? 1 : 0,
                         transform: show ? "translateY(0) scale(1)" : "translateY(6px) scale(0.9)",
@@ -269,7 +269,7 @@ export default function ToolsPage({
                     >
                       <span style={{
                         fontSize: "0.85rem",
-                        color: isHov ? "#E8D8C4" : "rgba(232,216,196,0.8)",
+                        color: isHov ? stream.color : "#E8D8C4",
                         transition: "color 0.2s ease",
                         fontFamily: tool.icon.length <= 2 ? "monospace" : "inherit",
                         fontWeight: tool.icon.length <= 2 ? "bold" : "normal",
@@ -293,23 +293,21 @@ export default function ToolsPage({
         </div>
       </div>
 
-      {/* ── RIGHT — Image with matching background ── */}
+      {/* ── RIGHT — Image ── */}
       <div style={{
         width: "40%", height: "100%",
         position: "relative", zIndex: 5,
         overflow: "hidden",
         transform: imageVisible ? "translateX(0)" : "translateX(110%)",
         transition: "transform 1.5s cubic-bezier(0.77,0,0.18,1)",
-        backgroundColor: "#561C24", // Match left background
       }}>
         <Image
           src="/TOOLS.png"
           alt="Tools background"
           fill
-          style={{ objectFit: "cover", objectPosition: "center", opacity: 0.7 }}
+          style={{ objectFit: "cover", objectPosition: "center" }}
           priority
         />
-        {/* Remove the dark gradient overlay */}
         <div style={{
           position: "absolute", inset: 0,
           background: "linear-gradient(to right, #561C24 0%, transparent 30%)",
