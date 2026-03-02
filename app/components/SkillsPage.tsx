@@ -38,7 +38,7 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotatio
       setRotation(prev => prev + 30);
       setTimeout(() => {
         lockRef.current = false;
-        if (onExitToTools) onExitToTools();
+        if (onExitToTools) onExitToTools(rotation + 30);
       }, 750);
       return;
     }
