@@ -14,7 +14,8 @@ const skills = [
 const TOTAL = skills.length;
 const FIXED_ANGLES = [-75, -45, -15, 195, 225, 255];
 
-export default function SkillsPage({ onExitToTools }: { onExitToTools?: () => void }) {
+// export default function SkillsPage({ onExitToTools }: { onExitToTools?: () => void }) {
+export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotation: number) => void }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [rotation, setRotation] = useState(0);
   const [fading, setFading] = useState(false);
