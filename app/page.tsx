@@ -323,7 +323,11 @@ export default function Home() {
               <SkillsPage onExitToTools={(r) => { setRotation(r); goToPage("tools"); }} />
             </div>
             <div style={{ height: `${100 / PAGES.length}%`, position: "relative" }}>
-              <ToolsPage activePage={activePage} />
+              {/* <ToolsPage activePage={activePage} /> */}
+              <ToolsPage 
+    activePage={activePage} 
+    isVisible={activePage === "tools"} 
+  />
             </div>
             {/* Projects — overflow visible so popup isn't clipped */}
             <div style={{ height: `${100 / PAGES.length}%`, position: "relative", overflow: "visible" }}>

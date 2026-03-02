@@ -83,23 +83,26 @@ const streams = [
   },
 ];
 
-const LABEL_DELAY = 80;
-const TOOL_DELAY  = 60;
+const LABEL_DELAY = 100; // Delay between each label appearing
+const TOOL_DELAY = 50;   // Delay between each tool appearing
 
 export default function ToolsPage({
   activePage,
+  isVisible,
 }: {
   activePage: string;
-}){
-  const [mousePos, setMousePos]   = useState({ x: 0, y: 0 });
-  const [hovered, setHovered]     = useState<string | null>(null);
+  isVisible?: boolean;
+}) {
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [hovered, setHovered] = useState<string | null>(null);
 
   const [headingVisible, setHeadingVisible] = useState(false);
-  const [visibleLabels, setVisibleLabels]   = useState<boolean[]>(Array(streams.length).fill(false));
-  const [visibleTools, setVisibleTools]     = useState<boolean[][]>(
+  const [visibleLabels, setVisibleLabels] = useState<boolean[]>(Array(streams.length).fill(false));
+  const [visibleTools, setVisibleTools] = useState<boolean[][]>(
     streams.map(s => Array(s.tools.length).fill(false))
   );
   const [imageVisible, setImageVisible] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   // Mouse glow
   useEffect(() => {
@@ -108,50 +111,66 @@ export default function ToolsPage({
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  // Orchestrated entrance
+  // Trigger animations when page becomes visible
   useEffect(() => {
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    let t = 0;
+    if (isVisible && !hasAnimated) {
+      // Reset all visibility states
+      setHeadingVisible(false);
+      setVisibleLabels(Array(streams.length).fill(false));
+      setVisibleTools(streams.map(s => Array(s.tools.length).fill(false)));
+      setImageVisible(false);
 
-    // 1. Heading
-    t += 100;
-    timers.push(setTimeout(() => setHeadingVisible(true), t));
+      const timers: ReturnType<typeof setTimeout>[] = [];
+      let t = 0;
 
-    // 2. Labels staggered
-    streams.forEach((_, si) => {
-      t += LABEL_DELAY;
-      const captured = si;
-      timers.push(setTimeout(() => {
-        setVisibleLabels(prev => {
-          const next = [...prev];
-          next[captured] = true;
-          return next;
-        });
-      }, t));
-    });
+      // 1. Heading appears first
+      t += 200;
+      timers.push(setTimeout(() => setHeadingVisible(true), t));
 
-    // 3. Image starts sliding in at same time as tools
-    t += 200;
-    
-    timers.push(setTimeout(() => setImageVisible(true), t));
-
-    // 4. Tools load one by one
-    streams.forEach((stream, si) => {
-      stream.tools.forEach((_, ti) => {
-        t += TOOL_DELAY;
-        const cs = si, ct = ti;
+      // 2. Labels appear one by one
+      streams.forEach((_, si) => {
+        t += LABEL_DELAY;
+        const captured = si;
         timers.push(setTimeout(() => {
-          setVisibleTools(prev => {
-            const next = prev.map(row => [...row]);
-            next[cs][ct] = true;
+          setVisibleLabels(prev => {
+            const next = [...prev];
+            next[captured] = true;
             return next;
           });
         }, t));
       });
-    });
 
-    return () => timers.forEach(clearTimeout);
-  }, []);
+      // 3. Image slides in after labels start appearing
+      t += 200;
+      timers.push(setTimeout(() => setImageVisible(true), t));
+
+      // 4. Tools appear one by one within each stream
+      streams.forEach((stream, si) => {
+        stream.tools.forEach((_, ti) => {
+          t += TOOL_DELAY;
+          const cs = si, ct = ti;
+          timers.push(setTimeout(() => {
+            setVisibleTools(prev => {
+              const next = prev.map(row => [...row]);
+              next[cs][ct] = true;
+              return next;
+            });
+          }, t));
+        });
+      });
+
+      setHasAnimated(true);
+
+      return () => timers.forEach(clearTimeout);
+    }
+  }, [isVisible, hasAnimated]);
+
+  // Reset animation when page becomes hidden
+  useEffect(() => {
+    if (!isVisible) {
+      setHasAnimated(false);
+    }
+  }, [isVisible]);
 
   return (
     <div
@@ -166,122 +185,189 @@ export default function ToolsPage({
       }}
     >
       {/* Mouse glow */}
-      <div style={{
-        position: "absolute",
-        left: mousePos.x - 150,
-        top: mousePos.y - 150,
-        width: "300px", height: "300px",
-        borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(232,216,196,0.15) 0%, transparent 70%)",
-        pointerEvents: "none",
-        zIndex: 998,
-        filter: "blur(10px)",
-      }} />
+      <div
+        style={{
+          position: "absolute",
+          left: mousePos.x - 150,
+          top: mousePos.y - 150,
+          width: "300px",
+          height: "300px",
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(232,216,196,0.15) 0%, transparent 70%)",
+          pointerEvents: "none",
+          zIndex: 998,
+          filter: "blur(10px)",
+        }}
+      />
 
       {/* ── LEFT — Tools content ── */}
-      <div style={{
-        width: "60%", height: "100%",
-        position: "relative", zIndex: 10,
-        display: "flex", flexDirection: "column",
-        justifyContent: "center",
-        padding: "40px 0 40px 60px",
-        opacity: 1,
-      }}>
-
+      <div
+        style={{
+          width: "60%",
+          height: "100%",
+          position: "relative",
+          zIndex: 10,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          padding: "40px 0 40px 60px",
+          opacity: 1,
+        }}
+      >
         {/* Heading */}
-        <div style={{
-          marginBottom: "30px",
-          opacity: headingVisible ? 1 : 0,
-          transform: headingVisible ? "translateY(0)" : "translateY(-10px)",
-          transition: "opacity 1s ease, transform 0.25s ease",
-        }}>
-          <p style={{
-            fontSize: "0.6rem", letterSpacing: "0.5em",
-            textTransform: "uppercase", fontFamily: "monospace",
-            color: "#E8D8C4", marginBottom: "6px",
-          }}>what i work with</p>
-          <h2 style={{
-            fontSize: "clamp(1.6rem, 2.5vw, 2.2rem)",
-            fontFamily: "Georgia, serif", fontWeight: "800",
-            textTransform: "uppercase", letterSpacing: "0.1em",
-            color: "#E8D8C4",
-            textShadow: "0 0 20px rgba(232,216,196,0.3)",
-          }}>TOOLS & STACK</h2>
+        <div
+          style={{
+            marginBottom: "30px",
+            opacity: headingVisible ? 1 : 0,
+            transform: headingVisible ? "translateY(0)" : "translateY(-10px)",
+            transition: "opacity 0.8s ease, transform 0.5s ease",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "0.6rem",
+              letterSpacing: "0.5em",
+              textTransform: "uppercase",
+              fontFamily: "monospace",
+              color: "#E8D8C4",
+              marginBottom: "6px",
+            }}
+          >
+            what i work with
+          </p>
+          <h2
+            style={{
+              fontSize: "clamp(1.6rem, 2.5vw, 2.2rem)",
+              fontFamily: "Georgia, serif",
+              fontWeight: "800",
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              color: "#E8D8C4",
+              textShadow: "0 0 20px rgba(232,216,196,0.3)",
+            }}
+          >
+            TOOLS & STACK
+          </h2>
         </div>
 
         {/* Streams */}
-        <div style={{
-          display: "flex", flexDirection: "column",
-          gap: "14px", maxWidth: "700px",
-        }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "14px",
+            maxWidth: "700px",
+          }}
+        >
           {streams.map((stream, si) => (
-            <div key={stream.label} style={{
-              display: "flex", alignItems: "flex-start", gap: "15px",
-            }}>
-
+            <div
+              key={stream.label}
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "15px",
+              }}
+            >
               {/* Label */}
-              <div style={{
-                width: "140px", flexShrink: 0,
-                fontFamily: "Georgia, serif",
-                fontSize: "0.75rem", fontWeight: "600",
-                letterSpacing: "0.06em", textTransform: "uppercase",
-                color: "#E8D8C4", textAlign: "right",
-                textShadow: `0 0 8px rgba(232,216,196,0.4)`,
-                paddingTop: "6px",
-                opacity: visibleLabels[si] ? 1 : 0,
-                transform: visibleLabels[si] ? "translateX(0)" : "translateX(-12px)",
-                transition: "opacity 0.2s ease, transform 0.4s ease",
-              }}>
+              <div
+                style={{
+                  width: "140px",
+                  flexShrink: 0,
+                  fontFamily: "Georgia, serif",
+                  fontSize: "0.75rem",
+                  fontWeight: "600",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: "#E8D8C4",
+                  textAlign: "right",
+                  textShadow: `0 0 8px rgba(232,216,196,0.4)`,
+                  paddingTop: "6px",
+                  opacity: visibleLabels[si] ? 1 : 0,
+                  transform: visibleLabels[si] ? "translateX(0)" : "translateX(-12px)",
+                  transition: "opacity 0.4s ease, transform 0.5s ease",
+                }}
+              >
                 {stream.label}
               </div>
 
               {/* Connector */}
-              <div style={{
-                width: "16px", height: "1px", flexShrink: 0,
-                background: `linear-gradient(to right, transparent, #E8D8C4)`,
-                marginTop: "10px",
-                opacity: visibleLabels[si] ? 1 : 0,
-                transition: "opacity 0.4s ease 0.1s",
-              }} />
+              <div
+                style={{
+                  width: "16px",
+                  height: "1px",
+                  flexShrink: 0,
+                  background: `linear-gradient(to right, transparent, #E8D8C4)`,
+                  marginTop: "10px",
+                  opacity: visibleLabels[si] ? 1 : 0,
+                  transition: "opacity 0.4s ease 0.1s",
+                }}
+              />
 
               {/* Tools */}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", flex: 1 }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "8px",
+                  flex: 1,
+                }}
+              >
                 {stream.tools.map((tool, ti) => {
                   const key = `${si}-${ti}`;
                   const isHov = hovered === key;
-                  const show = visibleTools[si][ti];
+                  const show = visibleTools[si]?.[ti] || false;
                   return (
                     <div
                       key={tool.name}
                       onMouseEnter={() => setHovered(key)}
                       onMouseLeave={() => setHovered(null)}
                       style={{
-                        display: "flex", alignItems: "center", gap: "5px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
                         padding: "5px 12px",
-                        border: `1px solid ${isHov ? "#E8D8C4" : "rgba(232,216,196,0.3)"}`,
+                        border: `1px solid ${
+                          isHov ? "#E8D8C4" : "rgba(232,216,196,0.3)"
+                        }`,
                         borderRadius: "20px",
-                        background: isHov ? "rgba(232,216,196,0.15)" : "rgba(232,216,196,0.05)",
+                        background: isHov
+                          ? "rgba(232,216,196,0.15)"
+                          : "rgba(232,216,196,0.05)",
                         cursor: "default",
                         opacity: show ? 1 : 0,
-                        transform: show ? "translateY(0) scale(1)" : "translateY(6px) scale(0.9)",
-                        transition: "opacity 0.25s ease, transform 0.25s ease, border-color 0.2s ease, background 0.2s ease",
+                        transform: show
+                          ? "translateY(0) scale(1)"
+                          : "translateY(8px) scale(0.9)",
+                        transition:
+                          "opacity 0.3s ease, transform 0.3s ease, border-color 0.2s ease, background 0.2s ease",
                       }}
                     >
-                      <span style={{
-                        fontSize: "0.85rem",
-                        color: isHov ? "#E8D8C4" : "rgba(232,216,196,0.8)",
-                        transition: "color 0.2s ease",
-                        fontFamily: tool.icon.length <= 2 ? "monospace" : "inherit",
-                        fontWeight: tool.icon.length <= 2 ? "bold" : "normal",
-                      }}>
+                      <span
+                        style={{
+                          fontSize: "0.85rem",
+                          color: isHov
+                            ? "#E8D8C4"
+                            : "rgba(232,216,196,0.8)",
+                          transition: "color 0.2s ease",
+                          fontFamily:
+                            tool.icon.length <= 2 ? "monospace" : "inherit",
+                          fontWeight:
+                            tool.icon.length <= 2 ? "bold" : "normal",
+                        }}
+                      >
                         {tool.icon}
                       </span>
-                      <span style={{
-                        fontFamily: "monospace", fontSize: "0.6rem",
-                        letterSpacing: "0.05em",
-                        color: isHov ? "#E8D8C4" : "rgba(232,216,196,0.7)",
-                        transition: "color 0.2s ease",
-                      }}>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          fontSize: "0.6rem",
+                          letterSpacing: "0.05em",
+                          color: isHov
+                            ? "#E8D8C4"
+                            : "rgba(232,216,196,0.7)",
+                          transition: "color 0.2s ease",
+                        }}
+                      >
                         {tool.name}
                       </span>
                     </div>
@@ -294,27 +380,39 @@ export default function ToolsPage({
       </div>
 
       {/* ── RIGHT — Image with matching background ── */}
-      <div style={{
-        width: "40%", height: "100%",
-        position: "relative", zIndex: 5,
-        overflow: "hidden",
-        transform: imageVisible ? "translateX(0)" : "translateX(110%)",
-        transition: "transform 1.5s cubic-bezier(0.77,0,0.18,1)",
-        backgroundColor: "#561C24", // Match left background
-      }}>
+      <div
+        style={{
+          width: "40%",
+          height: "100%",
+          position: "relative",
+          zIndex: 5,
+          overflow: "hidden",
+          transform: imageVisible ? "translateX(0)" : "translateX(110%)",
+          transition: "transform 1.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          backgroundColor: "#561C24", // Match left background
+        }}
+      >
         <Image
-          src="/TOOLS.jpg"
+          src="/TOOLS.png"
           alt="Tools background"
           fill
-          style={{ objectFit: "cover", objectPosition: "center", opacity: 0.7 }}
+          style={{
+            objectFit: "cover",
+            objectPosition: "center",
+            opacity: imageVisible ? 0.7 : 0,
+            transition: "opacity 0.5s ease",
+          }}
           priority
         />
-        {/* Remove the dark gradient overlay */}
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(to right, #561C24 0%, transparent 30%)",
-          zIndex: 2,
-        }} />
+        {/* Gradient overlay */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(to right, #561C24 0%, transparent 30%)",
+            zIndex: 2,
+          }}
+        />
       </div>
     </div>
   );
