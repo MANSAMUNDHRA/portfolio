@@ -16,7 +16,11 @@ const PAGES = ["about", "skills", "tools", "projects", "experience", "contact"] 
 type PageName = typeof PAGES[number];
 
 export default function Home() {
+  // Loading states
   const [isLoading, setIsLoading] = useState(true);
+  const [contentPreloaded, setContentPreloaded] = useState(false);
+  
+  // Your existing states
   const [slide, setSlide] = useState(1);
   const [line1, setLine1] = useState("");
   const [line2, setLine2] = useState("");
@@ -38,6 +42,56 @@ export default function Home() {
   const activePageRef = useRef<PageName>("about");
   const scrollLockedRef = useRef(false);
 
+  // PRELOAD ALL CRITICAL ASSETS
+useEffect(() => {
+  // Preload all critical images
+  const imageUrls = [
+    '/gear.png',
+    '/me.png',
+    '/TOOLS.png',
+    '/polycode.png',
+    '/ashaconnect.png',
+    '/chatform.png',
+    '/fixmysociety.png',
+    '/stock.jpg',
+    '/therapy.jpg',
+    '/skull.png'
+  ];
+
+  const preloadImages = imageUrls.map((url) => {
+    return new Promise((resolve) => {
+      // Use window.Image explicitly to avoid conflict with Next.js Image
+      const img = new window.Image();
+      img.src = url;
+      img.onload = resolve;
+      img.onerror = resolve; // Resolve even if error to not block forever
+    });
+  });
+
+  // Also preload critical fonts
+  const fontCheck = new Promise((resolve) => {
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(resolve);
+    } else {
+      resolve(null);
+    }
+  });
+
+  // Wait for everything to load
+  Promise.all([...preloadImages, fontCheck]).then(() => {
+    console.log("All content preloaded");
+    setContentPreloaded(true);
+  });
+
+  // Fallback timeout - force content loaded after 5 seconds max
+  const timeout = setTimeout(() => {
+    console.log("Fallback timeout triggered");
+    setContentPreloaded(true);
+  }, 5000);
+
+  return () => clearTimeout(timeout);
+}, []);
+
   useEffect(() => {
     if (!isLoading) {
       const t = setTimeout(() => setIsReady(true), 100);
@@ -45,7 +99,9 @@ export default function Home() {
     }
   }, [isLoading]);
 
-  const handleLoadingComplete = () => setIsLoading(false);
+  const handleLoadingComplete = () => {
+    setIsLoading(false);
+  };
 
   const goToSlide = (next: number) => {
     if (scrollLockedRef.current) return;
@@ -187,7 +243,10 @@ export default function Home() {
     return () => clearTimeout(timeout);
   }, [phase, charIndex, slide, isReady]);
 
-  if (isLoading) return <Loading onLoadingComplete={handleLoadingComplete} />;
+  // Show loading until both conditions are met
+  if (isLoading || !contentPreloaded) {
+    return <Loading onLoadingComplete={handleLoadingComplete} />;
+  }
 
   const pageIndex = PAGES.indexOf(activePage);
 
