@@ -10,23 +10,24 @@ export default function Loading({ onLoadingComplete }: LoadingProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Progress bar animation - starts slow then speeds up
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        // Slow at start (0-30%), medium (30-70%), fast (70-100%)
-        if (prev < 30) {
-          return prev + 0.60; // Slow
-        } else if (prev < 75) {
-          return prev + 1; // Medium
-        } else if (prev < 99) {
-          return prev + 2; // Fast
-        }
-        return prev;
-      });
-    }, 30); // Update every 30ms
+  // Progress bar animation - starts slow then speeds up
+  const progressInterval = setInterval(() => {
+    setProgress((prev) => {
+      if (prev < 30) {
+        return prev + 0.60;
+      } else if (prev < 75) {
+        return prev + 1;
+      } else if (prev < 99) {
+        return prev + 2;
+      }
+      return prev;
+    });
+  }, 30);
 
-    const timer = setTimeout(() => {
-      setProgress(100); // Complete the bar
+  // Wait for window to fully load (images, fonts, etc.)
+  const handleLoad = () => {
+    setTimeout(() => {
+      setProgress(100);
       clearInterval(progressInterval);
       
       setTimeout(() => {
@@ -34,15 +35,36 @@ export default function Loading({ onLoadingComplete }: LoadingProps) {
         setTimeout(() => {
           onLoadingComplete();
         }, 300);
-      }, 500); // Wait half a second at 100%
-    }, 3000);
+      }, 500);
+    }, 500);
+  };
 
-    return () => {
-      clearTimeout(timer);
-      clearInterval(progressInterval);
-    };
-  }, [onLoadingComplete]);
+  // If already loaded, trigger immediately
+  if (document.readyState === 'complete') {
+    handleLoad();
+  } else {
+    window.addEventListener('load', handleLoad);
+  }
 
+  // Fallback timer in case load event doesn't fire
+  const fallbackTimer = setTimeout(() => {
+    setProgress(100);
+    clearInterval(progressInterval);
+    
+    setTimeout(() => {
+      setIsVisible(false);
+      setTimeout(() => {
+        onLoadingComplete();
+      }, 300);
+    }, 500);
+  }, 5000);
+
+  return () => {
+    clearInterval(progressInterval);
+    clearTimeout(fallbackTimer);
+    window.removeEventListener('load', handleLoad);
+  };
+}, [onLoadingComplete]);
   return (
     <div 
       className="relative h-screen w-screen flex flex-col justify-center items-center overflow-hidden bg-black"
