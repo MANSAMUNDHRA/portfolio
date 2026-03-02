@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import useWindowSize from '@/hooks/useWindowSize';
 
 const experiences = [
   {
@@ -9,8 +10,8 @@ const experiences = [
     company: "DeepSurge AI",
     period: "Aug – Oct 2025",
     type: "Technical Experience",
-    color: "#f0e6d3", // Light cream from contact page
-    bg: "#f0e6d3", // Card background - light cream
+    color: "#f0e6d3",
+    bg: "#f0e6d3",
     points: [
       "Computer vision pipeline for anomaly detection using OpenCV",
       "Feature extraction & damage classification for road conditions",
@@ -23,8 +24,8 @@ const experiences = [
     company: "———",
     period: "—",
     type: "",
-    color: "#3d0c0c", // Deep burgundy
-    bg: "#3d0c0c", // Card background - deep burgundy
+    color: "#3d0c0c",
+    bg: "#3d0c0c",
     points: [],
     blank: true,
   },
@@ -34,23 +35,22 @@ const experiences = [
     company: "KIIT Electrical Society",
     period: "2024 – Present",
     type: "Technical Experience",
-    color: "#3d0c0c", // Deep burgundy from contact page
-    bg: "#3d0c0c", // Card background - deep burgundy
+    color: "#3d0c0c",
+    bg: "#3d0c0c",
     points: [
       "Arduino-based autonomous robots: Line Follower, Sand Rover, Obstacle Bot",
       "Embedded C++ for real-time sensor processing & motor control",
       "Prototypes demonstrated at IIT Patna & IIT Kharagpur tech fests",
     ],
   },
-  
   {
     id: 4,
     role: "Coming Soon",
     company: "———",
     period: "—",
     type: "",
-    color: "#f0e6d3", // Light cream
-    bg: "#f0e6d3", // Card background - light cream
+    color: "#f0e6d3",
+    bg: "#f0e6d3",
     points: [],
     blank: true,
   },
@@ -59,10 +59,56 @@ const experiences = [
 export default function ExperiencePage({ onScrollUp }: { onScrollUp?: () => void }) {
   const [active, setActive] = useState(2);
   const [visible, setVisible] = useState(false);
+  const { width } = useWindowSize();
+  const isMobile = width <= 768;
+  
+  // Touch swipe handling
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 200);
     return () => clearTimeout(t);
+  }, []);
+
+  // Handle touch events for swipe
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX.current = e.touches[0].clientX;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      touchEndX.current = e.touches[0].clientX;
+    };
+
+    const handleTouchEnd = () => {
+      const swipeThreshold = 50;
+      const diff = touchStartX.current - touchEndX.current;
+      
+      if (Math.abs(diff) > swipeThreshold) {
+        if (diff > 0) {
+          // Swipe left -> next experience
+          setActive(prev => Math.min(prev + 1, experiences.length - 1));
+        } else {
+          // Swipe right -> previous experience
+          setActive(prev => Math.max(prev - 1, 0));
+        }
+      }
+      
+      // Reset
+      touchStartX.current = 0;
+      touchEndX.current = 0;
+    };
+
+    window.addEventListener("touchstart", handleTouchStart);
+    window.addEventListener("touchmove", handleTouchMove);
+    window.addEventListener("touchend", handleTouchEnd);
+
+    return () => {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
   }, []);
 
   useEffect(() => {
@@ -79,10 +125,18 @@ export default function ExperiencePage({ onScrollUp }: { onScrollUp?: () => void
   }, [onScrollUp]);
 
   const getCardStyle = (idx: number) => {
+    if (isMobile) {
+      const diff = idx - active;
+      return {
+        transform: `translateX(${diff * 20}px) scale(${idx === active ? 1 : 0.9})`,
+        opacity: idx === active ? 1 : 0.5,
+        zIndex: 10 - Math.abs(diff),
+        transition: "all 0.4s ease",
+      };
+    }
+    
     const diff = idx - active;
     const absDiff = Math.abs(diff);
-
-    // Position along the arc
     const xOffset = diff * 200;
     const zOffset = absDiff === 0 ? 0 : absDiff === 1 ? -120 : absDiff === 2 ? -260 : -380;
     const rotateY = diff * -38;
@@ -102,7 +156,7 @@ export default function ExperiencePage({ onScrollUp }: { onScrollUp?: () => void
     <div style={{
       width: "100%",
       height: "100%",
-      background: "#0e0d0d", // Deep burgundy background
+      background: "#0e0d0d",
       overflow: "hidden",
       display: "flex",
       flexDirection: "column",
@@ -127,7 +181,7 @@ export default function ExperiencePage({ onScrollUp }: { onScrollUp?: () => void
 
       {/* Header */}
       <div style={{
-        padding: "28px 56px 8px",
+        padding: isMobile ? "16px 20px 8px" : "28px 56px 8px",
         flexShrink: 0, zIndex: 5, position: "relative",
         opacity: visible ? 1 : 0,
         transition: "opacity 0.6s ease 0.2s",
@@ -146,17 +200,17 @@ export default function ExperiencePage({ onScrollUp }: { onScrollUp?: () => void
         justifyContent: "center",
         position: "relative",
         zIndex: 2,
-        perspective: "1200px",
+        perspective: isMobile ? "none" : "1200px",
         perspectiveOrigin: "50% 45%",
         opacity: visible ? 1 : 0,
         transition: "opacity 0.7s ease 0.4s",
       }}>
-        {/* Cards container — centered, preserves 3D */}
+        {/* Cards container */}
         <div style={{
           position: "relative",
-          width: "320px",
-          height: "400px",
-          transformStyle: "preserve-3d",
+          width: isMobile ? "280px" : "320px",
+          height: isMobile ? "350px" : "400px",
+          transformStyle: isMobile ? "flat" : "preserve-3d",
         }}>
           {experiences.map((exp, idx) => {
             const cardStyle = getCardStyle(idx);

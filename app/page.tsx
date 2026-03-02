@@ -10,7 +10,7 @@ import ToolsPage from "./components/ToolPage";
 import ProjectsPage, { type ProjectItem } from "./components/ProjectsPage";
 import ContactPage from "./components/ContactPage";
 import ExperiencePage from "./components/ExperiencePage";
-
+import useWindowSize from '@/hooks/useWindowSize';
 // Page order for vertical stack - ALL 6 PAGES
 const PAGES = ["about", "skills", "tools", "projects", "experience", "contact"] as const;
 type PageName = typeof PAGES[number];
@@ -36,12 +36,32 @@ export default function Home() {
   const [gearStartX, setGearStartX] = useState(0);
   const [gearStartY, setGearStartY] = useState(0);
   const gearRef = useRef<HTMLDivElement>(null);
+  const { width } = useWindowSize();
+const isMobile = width <= 768;
 
   // Refs — always current, never stale in event handlers
   const slideRef = useRef(1);
   const activePageRef = useRef<PageName>("about");
   const scrollLockedRef = useRef(false);
 
+
+    // Add resize handler for responsive
+  useEffect(() => {
+    // Prevent body scroll on mobile
+    document.body.style.overflow = 'hidden';
+    
+    // Handle resize events for responsive adjustments
+    const handleResize = () => {
+      // Force re-render for responsive layouts
+      setSlide(slide); // Trigger re-render
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      document.body.style.overflow = '';
+    };
+  }, []);
   // PRELOAD ALL CRITICAL ASSETS
 useEffect(() => {
   // Preload all critical images

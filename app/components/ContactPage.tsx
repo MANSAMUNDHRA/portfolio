@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import emailjs from '@emailjs/browser';
+import useWindowSize from '@/hooks/useWindowSize';
 
 export default function ContactPage({ onExitToProjects }: { onExitToProjects?: () => void }) {
   const [visible, setVisible] = useState(false);
@@ -14,6 +15,8 @@ export default function ContactPage({ onExitToProjects }: { onExitToProjects?: (
   const [error, setError] = useState("");
 
   const formRef = useRef<HTMLDivElement>(null);
+  const { width } = useWindowSize();
+  const isMobile = width <= 768;
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 200);
@@ -32,8 +35,6 @@ export default function ContactPage({ onExitToProjects }: { onExitToProjects?: (
     window.addEventListener("wheel", onWheel, { passive: true });
     return () => window.removeEventListener("wheel", onWheel);
   }, [onExitToProjects]);
-
-  // REMOVED emailjs.init() - we'll pass key directly in send()
 
   const handleSend = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -58,14 +59,14 @@ export default function ContactPage({ onExitToProjects }: { onExitToProjects?: (
         service: "service_efihsfl",
         template: "template_5hu2sas",
         params: templateParams,
-        publicKey: "vbVcs1zCR-e0s6oKa" // Verify this is EXACT
+        publicKey: "vbVcs1zCR-e0s6oKa"
       });
 
       const result = await emailjs.send(
-        "service_efihsfl",        // Your Service ID
-        "template_5hu2sas",       // Your Template ID
+        "service_efihsfl",
+        "template_5hu2sas",
         templateParams,
-        "vbVcs1zCR-e0s6oKa"   // Your Public Key (with lowercase L)
+        "vbVcs1zCR-e0s6oKa"
       );
 
       console.log("Success! Result:", result);
@@ -110,11 +111,11 @@ export default function ContactPage({ onExitToProjects }: { onExitToProjects?: (
       height: "100%",
       background: "#3d0c0c",
       position: "relative",
-      overflow: "hidden",
+      overflow: isMobile ? "auto" : "hidden",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      padding: "40px 60px",
+      padding: isMobile ? "20px" : "40px 60px",
       boxSizing: "border-box",
     }}>
 
@@ -138,15 +139,15 @@ export default function ContactPage({ onExitToProjects }: { onExitToProjects?: (
       <div ref={formRef} style={{
         position: "relative", zIndex: 2,
         display: "grid",
-        gridTemplateColumns: "1fr 2fr",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 2fr",
         gap: "0",
         width: "100%",
         maxWidth: "1000px",
-        maxHeight: "85vh",
+        maxHeight: isMobile ? "95vh" : "85vh",
         background: "#f0e6d3",
         borderRadius: "16px",
         border: "1px solid rgba(139,90,60,0.2)",
-        overflow: "hidden",
+        overflow: isMobile ? "auto" : "hidden",
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(24px)",
         transition: "opacity 0.7s ease, transform 0.7s ease",
@@ -154,11 +155,12 @@ export default function ContactPage({ onExitToProjects }: { onExitToProjects?: (
 
         {/* ── LEFT: Contact info ── */}
         <div style={{
-          padding: "44px 36px",
-          borderRight: "1px solid rgba(61,12,12,0.12)",
+          padding: isMobile ? "24px" : "44px 36px",
+          borderRight: isMobile ? "none" : "1px solid rgba(61,12,12,0.12)",
+          borderBottom: isMobile ? "1px solid rgba(61,12,12,0.12)" : "none",
           display: "flex",
           flexDirection: "column",
-          gap: "32px",
+          gap: isMobile ? "20px" : "32px",
           background: "rgba(0,0,0,0.12)",
         }}>
           {/* Label */}
@@ -244,7 +246,7 @@ export default function ContactPage({ onExitToProjects }: { onExitToProjects?: (
 
         {/* ── RIGHT: form ── */}
         <div style={{
-          padding: "44px 44px",
+          padding: isMobile ? "24px" : "44px 44px",
           display: "flex",
           flexDirection: "column",
         }}>

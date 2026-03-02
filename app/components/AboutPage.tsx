@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-
+import useWindowSize from '@/hooks/useWindowSize';
 export default function AboutPage() {
   const [showContent, setShowContent] = useState(false);
+  const { width } = useWindowSize();
+const isMobile = width <= 768;
 
   useEffect(() => {
     const timer = setTimeout(() => setShowContent(true), 500);
@@ -18,7 +20,9 @@ export default function AboutPage() {
       position: "relative",
       background: "#561C24", // Tools page background
       overflow: "hidden",
+      // display: "flex",
       display: "flex",
+flexDirection: isMobile ? "column" : "row",
     }}>
 
       {/* Mouse glow effect from Tools page */}
@@ -32,8 +36,10 @@ export default function AboutPage() {
         filter: "blur(10px)",
       }} />
         <div style={{
-  width: "45%",
-  height: "100%",
+  // width: "45%",
+  width: isMobile ? "100%" : "45%",
+height: isMobile ? "40%" : "100%",
+  // height: "100%",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -42,8 +48,10 @@ export default function AboutPage() {
 
   <div style={{
     position: "relative",
-    width: "500px",
-    height: "600px", // adjust to your image ratio
+    // width: "500px",
+    // height: "600px", // adjust to your image ratio
+    width: isMobile ? "250px" : "500px",
+height: isMobile ? "300px" : "600px",
     // border: "10px solid #000",
     overflow: "hidden",
   }}>
@@ -74,13 +82,18 @@ export default function AboutPage() {
 
       {/* ── RIGHT — text in Tools-style box ── */}
       <div style={{
-        width: "55%",
-        height: "100%",
+        // width: "55%",
+        width: isMobile ? "100%" : "55%",
+height: isMobile ? "60%" : "100%",
+paddingLeft: isMobile ? "20px" : "40px",
+paddingRight: isMobile ? "20px" : "10%",
+paddingBottom: isMobile ? "20px" : "0",
+        // height: "100%",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        paddingLeft: "40px",
-        paddingRight: "10%",
+        // paddingLeft: "40px",
+        // paddingRight: "10%",
         position: "relative",
         zIndex: 10,
       }}>
@@ -105,7 +118,8 @@ export default function AboutPage() {
           }}>
             <span style={{
               fontFamily: "Georgia, serif",
-              fontSize: "2rem",
+              // fontSize: "2rem",
+              fontSize: isMobile ? "1.2rem" : "2rem",
               color: "rgb(248, 246, 246)",
               fontWeight: 600,
             }}>“      Everybody lies .”</span>

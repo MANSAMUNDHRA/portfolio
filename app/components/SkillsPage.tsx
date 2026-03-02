@@ -1,30 +1,31 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import useWindowSize from '@/hooks/useWindowSize';
 
 const skills = [
-  { id: 1, title: "FULL STACK DEVELOPER", sub: "React · Next.js · Node.js",          short: "FULL STACK",  bg: "#561C24" }, // Changed to about page color
-  { id: 2, title: "ANDROID DEVELOPER",    sub: "Native & cross-platform mobile",      short: "ANDROID",     bg: "#7d2a35" }, // Slightly lighter burgundy
-  { id: 3, title: "ML RESEARCHER",        sub: "Applied ML — integration & research", short: "ML",          bg: "#9a3f4a" }, // Lighter burgundy
-  { id: 4, title: "BACKEND DEVELOPER",    sub: "APIs · Databases · Architecture",     short: "BACKEND",     bg: "#b8545f" }, // Even lighter
-  { id: 5, title: "AI ENGINEER",          sub: "Integrating AI into real products",   short: "AI",          bg: "#d77a85" }, // Light burgundy-pink
-  { id: 6, title: "LANGUAGES",            sub: "Java · C++ · Python",                short: "LANGUAGES",   bg: "#530402" }, // Cream color from about page
+  { id: 1, title: "FULL STACK DEVELOPER", sub: "React · Next.js · Node.js",          short: "FULL STACK",  bg: "#3d0b11" },
+  { id: 2, title: "ANDROID DEVELOPER",    sub: "Native & cross-platform mobile",      short: "ANDROID",     bg: "#512a50" },
+  { id: 3, title: "ML RESEARCHER",        sub: "Applied ML — integration & research", short: "ML",          bg: "#9a3f4a" },
+  { id: 4, title: "BACKEND DEVELOPER",    sub: "APIs · Databases · Architecture",     short: "BACKEND",     bg: "#520524" },
+  { id: 5, title: "AI ENGINEER",          sub: "Integrating AI into real products",   short: "AI",          bg: "#d77a85" },
+  { id: 6, title: "LANGUAGES",            sub: "Java · C++ · Python",                short: "LANGUAGES",   bg: "#530402" },
 ];
 
 const TOTAL = skills.length;
 const FIXED_ANGLES = [-75, -45, -15, 195, 225, 255];
 
-// export default function SkillsPage({ onExitToTools }: { onExitToTools?: () => void }) {
 export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotation: number) => void }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [rotation, setRotation] = useState(0);
   const [fading, setFading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const lockRef = useRef(false);           // sync lock — no state lag
-  const activeIndexRef = useRef(0);        // sync copy of activeIndex
+  const lockRef = useRef(false);
+  const activeIndexRef = useRef(0);
   const active = skills[activeIndex];
+  const { width } = useWindowSize();
+  const isMobile = width <= 768;
 
-  // Keep ref in sync with state
   useEffect(() => { activeIndexRef.current = activeIndex; }, [activeIndex]);
 
   const go = (dir: 1 | -1) => {
@@ -33,7 +34,6 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotatio
 
     const current = activeIndexRef.current;
 
-    // On last skill scrolling forward → exit to tools
     if (dir === 1 && current === TOTAL - 1) {
       setRotation(prev => prev + 30);
       setTimeout(() => {
@@ -56,7 +56,7 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotatio
     if (!el) return;
     
     let accumulated = 0;
-    const THRESHOLD = 100; // must accumulate this much delta before triggering
+    const THRESHOLD = 100;
     
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -77,18 +77,9 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotatio
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
-  const GEAR_SIZE = 550;
-  const PAD = 20;
+  const GEAR_SIZE = isMobile ? 300 : 550;
+  const PAD = isMobile ? 10 : 20;
   const R = GEAR_SIZE / 2 + PAD;
-
-  // Adjust text color based on background
-  const getTextColor = (index: number, isActive: boolean) => {
-    if (isActive) {
-      if (index === 5) return "#E8D8C4"; // Languages on cream bg - dark text
-      return "#E8D8C4"; // All others - cream text
-    }
-    return "#E8D8C4"; // Inactive - cream text
-  };
 
   return (
     <div
@@ -100,7 +91,7 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotatio
         transition: "background 0.6s ease",
       }}
     >
-      {/* ── COUNTER ── */}
+      {/* COUNTER */}
       <div style={{
         position: "absolute", top: "5%", right: "5%", zIndex: 10,
         fontFamily: "monospace", fontSize: "0.55rem",
@@ -109,18 +100,18 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotatio
         {String(activeIndex + 1).padStart(2, "0")} / {String(TOTAL).padStart(2, "0")}
       </div>
 
-      {/* ── HEADING ── */}
+      {/* HEADING */}
       <div style={{
         position: "absolute", top: "15%",
         left: "50%", transform: "translateX(-50%)",
         textAlign: "center", zIndex: 10, width: "65%",
       }}>
         <h2 style={{
-          fontSize: "clamp(2rem, 4.5vw, 4rem)",
+          fontSize: isMobile ? "clamp(1.5rem, 5vw, 2rem)" : "clamp(2rem, 4.5vw, 4rem)",
           fontFamily: "'Sergio Trendy', 'Georgia', 'Times New Roman', serif",
           fontWeight: "900",
           textTransform: "uppercase",
-          letterSpacing: "0.08em",
+          letterSpacing: isMobile ? "0.04em" : "0.08em",
           color: "#E8D8C4",
           lineHeight: 1.2,
           marginBottom: "10px",
@@ -128,7 +119,7 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotatio
           transform: fading ? "translateY(-6px)" : "translateY(0)",
           transition: "opacity 0.25s ease, transform 0.25s ease",
           textShadow: "0 2px 20px rgba(0,0,0,0.2)",
-          whiteSpace: "nowrap",
+          whiteSpace: isMobile ? "normal" : "nowrap",
         }}>
           {active.title}
         </h2>
@@ -145,7 +136,7 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotatio
         </p>
       </div>
 
-      {/* ── SEMICIRCLE + GEAR ── */}
+      {/* SEMICIRCLE + GEAR */}
       <div style={{
         position: "absolute",
         bottom: 0, left: "50%",
@@ -171,7 +162,7 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotatio
         </div>
       </div>
 
-      {/* ── ARC SVG ── */}
+      {/* ARC SVG */}
       <div style={{
         position: "absolute",
         bottom: 0, left: "50%",
@@ -202,10 +193,9 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotatio
 
             const opacity = isActive ? 1 : minDiff === 1 ? 0.8 : minDiff === 2 ? 0.6 : 0.4;
             
-            // Adjust text color based on background
             let textColor = "#E8D8C4";
             if (isActive) {
-              if (i === 5) textColor = "#E8D8C4"; // Languages on cream bg - dark text
+              if (i === 5) textColor = "#E8D8C4";
               else textColor = "#E8D8C4";
             }
 
@@ -238,17 +228,26 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotatio
         </svg>
       </div>
 
-      {/* ── ARROWS ── */}
-      {([[-1, "left", "4%"], [1, "right", "4%"]] as const).map(([dir, side, pos]) => (
-        <button key={side} onClick={() => go(dir as 1 | -1)}
+      {/* ARROWS - hide on mobile */}
+      {!isMobile && ([-1, 1] as const).map((dir, index) => (
+        <button key={dir} onClick={() => go(dir as 1 | -1)}
           style={{
-            position: "absolute", [side]: pos, top: "42%",
-            transform: "translateY(-50%)", zIndex: 20,
+            position: "absolute", 
+            [index === 0 ? "left" : "right"]: "4%", 
+            top: "42%",
+            transform: "translateY(-50%)", 
+            zIndex: 20,
             background: "rgba(232,216,196,0.15)",
             border: "1px solid rgba(232,216,196,0.35)",
-            borderRadius: "50%", width: "44px", height: "44px",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", color: "#E8D8C4", transition: "all 0.2s ease",
+            borderRadius: "50%", 
+            width: "44px", 
+            height: "44px",
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center",
+            cursor: "pointer", 
+            color: "#E8D8C4", 
+            transition: "all 0.2s ease",
           }}
           onMouseEnter={e => { e.currentTarget.style.background = "rgba(232,216,196,0.28)"; }}
           onMouseLeave={e => { e.currentTarget.style.background = "rgba(232,216,196,0.15)"; }}
@@ -258,7 +257,6 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotatio
           </svg>
         </button>
       ))}
-
     </div>
   );
 }

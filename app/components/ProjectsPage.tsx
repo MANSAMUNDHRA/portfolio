@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
+import useWindowSize from '@/hooks/useWindowSize';
 
 const allProjects = [
   {
@@ -99,10 +100,56 @@ export default function ProjectsPage({
 }) {
   const [active, setActive] = useState(2);
   const [visible, setVisible] = useState(false);
+  const { width } = useWindowSize();
+  const isMobile = width <= 768;
+  
+  // Touch swipe handling
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 200);
     return () => clearTimeout(t);
+  }, []);
+
+  // Handle touch events for swipe
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX.current = e.touches[0].clientX;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      touchEndX.current = e.touches[0].clientX;
+    };
+
+    const handleTouchEnd = () => {
+      const swipeThreshold = 50;
+      const diff = touchStartX.current - touchEndX.current;
+      
+      if (Math.abs(diff) > swipeThreshold) {
+        if (diff > 0) {
+          // Swipe left -> next project
+          setActive(prev => Math.min(prev + 1, allProjects.length - 1));
+        } else {
+          // Swipe right -> previous project
+          setActive(prev => Math.max(prev - 1, 0));
+        }
+      }
+      
+      // Reset
+      touchStartX.current = 0;
+      touchEndX.current = 0;
+    };
+
+    window.addEventListener("touchstart", handleTouchStart);
+    window.addEventListener("touchmove", handleTouchMove);
+    window.addEventListener("touchend", handleTouchEnd);
+
+    return () => {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
   }, []);
 
   // Arrow keys
@@ -116,22 +163,32 @@ export default function ProjectsPage({
   }, []);
 
   const getCardStyle = (idx: number) => {
-    const diff    = idx - active;
+    if (isMobile) {
+      const diff = idx - active;
+      return {
+        transform: `translateX(${diff * 20}px) scale(${idx === active ? 1 : 0.9})`,
+        opacity: idx === active ? 1 : 0.5,
+        zIndex: 10 - Math.abs(diff),
+        transition: "all 0.4s ease",
+      };
+    }
+    
+    const diff = idx - active;
     const absDiff = Math.abs(diff);
     const xOffset = diff * 200;
     const zOffset = absDiff === 0 ? 0 : absDiff === 1 ? -120 : absDiff === 2 ? -260 : -380;
     const rotateY = diff * -38;
-    const scale   = absDiff === 0 ? 1 : absDiff === 1 ? 0.82 : absDiff === 2 ? 0.68 : 0.56;
+    const scale = absDiff === 0 ? 1 : absDiff === 1 ? 0.82 : absDiff === 2 ? 0.68 : 0.56;
     const opacity = absDiff === 0 ? 1 : absDiff === 1 ? 0.75 : absDiff === 2 ? 0.5 : 0.3;
-    const zIndex  = 10 - absDiff;
+    const zIndex = 10 - absDiff;
+
     return {
       transform: `translateX(${xOffset}px) translateZ(${zOffset}px) rotateY(${rotateY}deg) scale(${scale})`,
-      opacity, zIndex,
+      opacity,
+      zIndex,
       transition: "all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
     };
   };
-
-  const activeExp = allProjects[active];
 
   return (
     <div style={{
@@ -143,7 +200,7 @@ export default function ProjectsPage({
       fontFamily: "monospace",
     }}>
 
-      {/* Radial glow — same as Experience */}
+      {/* Radial glow */}
       <div style={{
         position: "absolute", bottom: "-80px", left: "50%",
         transform: "translateX(-50%)",
@@ -155,7 +212,7 @@ export default function ProjectsPage({
 
       {/* Header */}
       <div style={{
-        padding: "28px 56px 8px",
+        padding: isMobile ? "16px 20px 8px" : "28px 56px 8px",
         flexShrink: 0, zIndex: 5, position: "relative",
         opacity: visible ? 1 : 0,
         transition: "opacity 0.6s ease 0.2s",
@@ -166,19 +223,21 @@ export default function ProjectsPage({
         </h1>
       </div>
 
-      {/* 3D Stage — identical to Experience */}
+      {/* 3D Stage */}
       <div style={{
         flex: 1,
         display: "flex", alignItems: "center", justifyContent: "center",
         position: "relative", zIndex: 2,
-        perspective: "1200px", perspectiveOrigin: "50% 45%",
+        perspective: isMobile ? "none" : "1200px",
+        perspectiveOrigin: "50% 45%",
         opacity: visible ? 1 : 0,
         transition: "opacity 0.7s ease 0.4s",
       }}>
         <div style={{
           position: "relative",
-          width: "320px", height: "400px",
-          transformStyle: "preserve-3d",
+          width: isMobile ? "280px" : "320px",
+          height: isMobile ? "350px" : "400px",
+          transformStyle: isMobile ? "flat" : "preserve-3d",
         }}>
           {allProjects.map((project, idx) => {
             const cardStyle = getCardStyle(idx);
@@ -193,7 +252,8 @@ export default function ProjectsPage({
                 onClick={() => isActive ? onOpenProject?.(project) : setActive(idx)}
                 style={{
                   position: "absolute", top: 0, left: 0,
-                  width: "320px", height: "400px",
+                  width: "320px",
+                  height: "400px",
                   borderRadius: "20px",
                   background: cardBg,
                   border: `1px solid ${isActive ? "#f0e6d380" : "#f0e6d340"}`,
@@ -288,7 +348,7 @@ export default function ProjectsPage({
         </div>
       </div>
 
-      {/* Dot navigation — identical to Experience */}
+      {/* Dot navigation */}
       <div style={{
         display: "flex", justifyContent: "center", gap: "8px",
         paddingBottom: "24px", zIndex: 5, position: "relative",
@@ -312,7 +372,7 @@ export default function ProjectsPage({
         ))}
       </div>
 
-      {/* Floor reflection line — identical to Experience */}
+      {/* Floor reflection line */}
       <div style={{
         position: "absolute", bottom: "55px", left: "15%", right: "15%",
         height: "1px",
