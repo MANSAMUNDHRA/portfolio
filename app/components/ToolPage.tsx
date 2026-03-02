@@ -100,16 +100,32 @@ export default function ToolsPage({
     streams.map(s => Array(s.tools.length).fill(false))
   );
   const [imageVisible, setImageVisible] = useState(false);
-// Add this temporarily for debugging
+// Aggressive debugging
 useEffect(() => {
-  // Force all content to show after 500ms
-  setTimeout(() => {
-    setHeadingVisible(true);
-    setVisibleLabels(Array(streams.length).fill(true));
-    setVisibleTools(streams.map(s => Array(s.tools.length).fill(true)));
-    setImageVisible(true);
-  }, 500);
+  console.log("ToolsPage mounted");
+  console.log("streams length:", streams.length);
+  
+  // Force everything visible immediately
+  setHeadingVisible(true);
+  setVisibleLabels(Array(streams.length).fill(true));
+  setVisibleTools(streams.map(s => Array(s.tools.length).fill(true)));
+  setImageVisible(true);
+  
+  console.log("States set to visible");
 }, []);
+
+// Log state changes
+useEffect(() => {
+  console.log("headingVisible:", headingVisible);
+}, [headingVisible]);
+
+useEffect(() => {
+  console.log("visibleLabels:", visibleLabels);
+}, [visibleLabels]);
+
+useEffect(() => {
+  console.log("imageVisible:", imageVisible);
+}, [imageVisible]);
   // Mouse glow
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => setMousePos({ x: e.clientX, y: e.clientY });
