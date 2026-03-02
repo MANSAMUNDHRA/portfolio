@@ -44,7 +44,16 @@ const isMobile = width <= 768;
   const activePageRef = useRef<PageName>("about");
   const scrollLockedRef = useRef(false);
 
-
+  // Set mobile to start at About page
+useEffect(() => {
+  if (isMobile) {
+    setSlide(3);
+    setShowWelcomeText(false);
+    setActivePage("about");
+    slideRef.current = 3;
+    activePageRef.current = "about";
+  }
+}, [isMobile]);
     // Add resize handler for responsive
   useEffect(() => {
     // Prevent body scroll on mobile

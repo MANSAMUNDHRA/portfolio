@@ -136,7 +136,7 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotatio
         </p>
       </div>
 
-      {/* SEMICIRCLE + GEAR */}
+            {/* SEMICIRCLE + GEAR */}
       <div style={{
         position: "absolute",
         bottom: 0, left: "50%",
@@ -150,18 +150,34 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: (rotatio
           position: "absolute", inset: 0,
           borderRadius: "50%", background: "#561C24",
         }} />
+        
+        {/* GEAR - fixed positioning */}
         <div style={{
           position: "absolute",
-          top: "50%", left: "50%",
-          width: `${GEAR_SIZE}px`, height: `${GEAR_SIZE}px`,
+          top: "50%",
+          left: "50%",
+          width: isMobile ? "200px" : `${GEAR_SIZE}px`,
+          height: isMobile ? "200px" : `${GEAR_SIZE}px`,
           transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
           transition: "transform 0.75s cubic-bezier(0.4,0,0.2,1)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}>
-          <img src="/gear.png" alt="gear"
-            style={{ width: "100%", height: "100%", objectFit: "contain", opacity: 0.9 }} />
+          <img 
+            src="/gear.png" 
+            alt="gear"
+            style={{ 
+              width: "100%", 
+              height: "100%", 
+              objectFit: "contain", 
+              opacity: 0.9,
+              maxWidth: isMobile ? "200px" : "550px",
+              maxHeight: isMobile ? "200px" : "550px",
+            }} 
+          />
         </div>
       </div>
-
       {/* ARC SVG */}
       <div style={{
         position: "absolute",
