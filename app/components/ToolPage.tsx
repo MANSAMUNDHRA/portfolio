@@ -158,7 +158,9 @@ export default function ToolsPage({
       id="tools-container"
       style={{
         width: "100%",
-        height: "100%",
+        // height: "100%",
+        height: "100vh",
+        
         background: "#561C24", // Dark burgundy from about page
         position: "relative",
         overflow: "hidden",
@@ -180,7 +182,7 @@ export default function ToolsPage({
 
       {/* ── LEFT — Tools content ── */}
       <div style={{
-        width: "60%", height: "100%",
+        width: "60%", height: "100vh",
         position: "relative", zIndex: 10,
         display: "flex", flexDirection: "column",
         justifyContent: "center",
@@ -295,7 +297,7 @@ export default function ToolsPage({
 
       {/* ── RIGHT — Image with matching background ── */}
       <div style={{
-        width: "40%", height: "100%",
+        width: "40%", height: "100vh",
         position: "relative", zIndex: 5,
         overflow: "hidden",
         transform: imageVisible ? "translateX(0)" : "translateX(110%)",

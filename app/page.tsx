@@ -324,6 +324,7 @@ export default function Home() {
             </div>
             <div style={{ height: `${100 / PAGES.length}%`, position: "relative" }}>
               <ToolsPage activePage={activePage} />
+              
             </div>
             {/* Projects — overflow visible so popup isn't clipped */}
             <div style={{ height: `${100 / PAGES.length}%`, position: "relative", overflow: "visible" }}>
