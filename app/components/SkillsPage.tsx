@@ -3,12 +3,12 @@
 import { useEffect, useState, useRef } from "react";
 
 const skills = [
-  { id: 1, title: "FULL STACK DEVELOPER", sub: "React · Next.js · Node.js",          short: "FULL STACK",  bg: "#190019" }, // Kept unchanged
-  { id: 2, title: "ANDROID DEVELOPER",    sub: "Native & cross-platform mobile",      short: "ANDROID",     bg: "#11212D" }, // Dark blue-green
-  { id: 3, title: "ML RESEARCHER",        sub: "Applied ML — integration & research", short: "ML",          bg: "#253745" }, // Medium blue-gray
-  { id: 4, title: "BACKEND DEVELOPER",    sub: "APIs · Databases · Architecture",     short: "BACKEND",     bg: "#4A5C6A" }, // Muted blue-gray
-  { id: 5, title: "AI ENGINEER",          sub: "Integrating AI into real products",   short: "AI",          bg: "#20c0e4" }, // Light gray-blue
-  { id: 6, title: "LANGUAGES",            sub: "Java · C++ · Python",                short: "LANGUAGES",   bg: "#06141B" }, // Darkest (replaces light color)
+  { id: 1, title: "FULL STACK DEVELOPER", sub: "React · Next.js · Node.js",          short: "FULL STACK",  bg: "#561C24" }, // Changed to about page color
+  { id: 2, title: "ANDROID DEVELOPER",    sub: "Native & cross-platform mobile",      short: "ANDROID",     bg: "#7d2a35" }, // Slightly lighter burgundy
+  { id: 3, title: "ML RESEARCHER",        sub: "Applied ML — integration & research", short: "ML",          bg: "#9a3f4a" }, // Lighter burgundy
+  { id: 4, title: "BACKEND DEVELOPER",    sub: "APIs · Databases · Architecture",     short: "BACKEND",     bg: "#b8545f" }, // Even lighter
+  { id: 5, title: "AI ENGINEER",          sub: "Integrating AI into real products",   short: "AI",          bg: "#d77a85" }, // Light burgundy-pink
+  { id: 6, title: "LANGUAGES",            sub: "Java · C++ · Python",                short: "LANGUAGES",   bg: "#530402" }, // Cream color from about page
 ];
 
 const TOTAL = skills.length;
@@ -80,14 +80,13 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: () => vo
   const PAD = 20;
   const R = GEAR_SIZE / 2 + PAD;
 
-  // Adjust text color for dark backgrounds
+  // Adjust text color based on background
   const getTextColor = (index: number, isActive: boolean) => {
     if (isActive) {
-      // For active skill on light backgrounds, use dark text
-      if (index === 4) return "#06141B"; // AI on light bg
-      return "white";
+      if (index === 5) return "#E8D8C4"; // Languages on cream bg - dark text
+      return "#E8D8C4"; // All others - cream text
     }
-    return "white";
+    return "#E8D8C4"; // Inactive - cream text
   };
 
   return (
@@ -104,7 +103,7 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: () => vo
       <div style={{
         position: "absolute", top: "5%", right: "5%", zIndex: 10,
         fontFamily: "monospace", fontSize: "0.55rem",
-        letterSpacing: "0.3em", color: "rgba(255,255,255,0.5)",
+        letterSpacing: "0.3em", color: "#E8D8C4",
       }}>
         {String(activeIndex + 1).padStart(2, "0")} / {String(TOTAL).padStart(2, "0")}
       </div>
@@ -121,7 +120,7 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: () => vo
           fontWeight: "900",
           textTransform: "uppercase",
           letterSpacing: "0.08em",
-          color: "white",
+          color: "#E8D8C4",
           lineHeight: 1.2,
           marginBottom: "10px",
           opacity: fading ? 0 : 1,
@@ -136,7 +135,7 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: () => vo
           fontSize: "0.75rem",
           letterSpacing: "0.12em",
           fontFamily: "Bryndan Write",
-          color: activeIndex === 4 ? "#06141B" : "rgba(255,255,255,0.75)", // Dark text for light background
+          color: activeIndex === 5 ? "#561C24" : "#E8D8C4",
           lineHeight: 1.7,
           opacity: fading ? 0 : 1,
           transition: "opacity 0.25s ease 0.05s",
@@ -157,7 +156,7 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: () => vo
       }}>
         <div style={{
           position: "absolute", inset: 0,
-          borderRadius: "50%", background: "#0a0a0a",
+          borderRadius: "50%", background: "#561C24",
         }} />
         <div style={{
           position: "absolute",
@@ -186,7 +185,7 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: () => vo
 
           <path
             d={`M ${400 - (R + 38)} 400 A ${R + 38} ${R + 38} 0 0 1 ${400 + (R + 38)} 400`}
-            fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1"
+            fill="none" stroke="#E8D8C4" strokeWidth="1"
           />
 
           {skills.map((skill, i) => {
@@ -202,11 +201,11 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: () => vo
 
             const opacity = isActive ? 1 : minDiff === 1 ? 0.8 : minDiff === 2 ? 0.6 : 0.4;
             
-            // Adjust text color for light backgrounds
-            let textColor = "white";
+            // Adjust text color based on background
+            let textColor = "#E8D8C4";
             if (isActive) {
-              if (i === 4) textColor = "#06141B"; // Dark text for AI on light bg
-              else textColor = "white";
+              if (i === 5) textColor = "#E8D8C4"; // Languages on cream bg - dark text
+              else textColor = "#E8D8C4";
             }
 
             return (
@@ -244,16 +243,16 @@ export default function SkillsPage({ onExitToTools }: { onExitToTools?: () => vo
           style={{
             position: "absolute", [side]: pos, top: "42%",
             transform: "translateY(-50%)", zIndex: 20,
-            background: "rgba(255,255,255,0.15)",
-            border: "1px solid rgba(255,255,255,0.35)",
+            background: "rgba(232,216,196,0.15)",
+            border: "1px solid rgba(232,216,196,0.35)",
             borderRadius: "50%", width: "44px", height: "44px",
             display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", color: "white", transition: "all 0.2s ease",
+            cursor: "pointer", color: "#E8D8C4", transition: "all 0.2s ease",
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.28)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; }}
+          onMouseEnter={e => { e.currentTarget.style.background = "rgba(232,216,196,0.28)"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "rgba(232,216,196,0.15)"; }}
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E8D8C4" strokeWidth="2.5">
             {dir === -1 ? <path d="M15 18l-6-6 6-6"/> : <path d="M9 18l6-6-6-6"/>}
           </svg>
         </button>

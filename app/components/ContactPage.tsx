@@ -1,420 +1,342 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Image from "next/image";
-
-const CONTACTS = [
-  {
-    icon: "✉",
-    label: "Email",
-    value: "mansha.mundhra2005@gmail.com",
-    href: "mailto:mansha.mundhra2005@gmail.com",
-    color: "#a78bfa",
-  },
-  {
-    icon: "in",
-    label: "LinkedIn",
-    value: "mansha-mundhra",
-    href: "https://www.linkedin.com/in/mansha-mundhra-155140283/",
-    color: "#60a5fa",
-  },
-  {
-    icon: "⌥",
-    label: "GitHub",
-    value: "MANSAMUNDHRA",
-    href: "https://github.com/MANSAMUNDHRA",
-    color: "#34d399",
-  },
-  {
-    icon: "◎",
-    label: "Instagram",
-    value: "@manshamundhra19",
-    href: "https://www.instagram.com/manshamundhra19",
-    color: "#f472b6",
-  },
-  {
-    icon: "☎",
-    label: "Phone",
-    value: "available on request",
-    href: null,
-    color: "#fbbf24",
-  },
-];
-
-function ContactRow({ c, i, visible }: { c: typeof CONTACTS[0]; i: number; visible: boolean }) {
-  const [hov, setHov] = useState(false);
-
-  const sharedStyle: React.CSSProperties = {
-    display: "flex", alignItems: "center", gap: "14px",
-    padding: "11px 16px",
-    border: `1px solid ${hov ? c.color + "55" : c.color + "20"}`,
-    borderRadius: "10px",
-    background: hov ? `${c.color}12` : `${c.color}06`,
-    transition: "all 0.2s ease",
-    opacity: visible ? 1 : 0,
-    transform: visible ? "translateX(0)" : "translateX(-16px)",
-    transitionDelay: `${i * 70}ms`,
-    textDecoration: "none",
-    cursor: c.href ? "pointer" : "default",
-  };
-
-  const inner = (
-    <>
-      <span style={{
-        fontFamily: "monospace", fontSize: "0.85rem",
-        color: c.color, width: "22px", textAlign: "center", fontWeight: "bold",
-      }}>{c.icon}</span>
-      <div style={{ flex: 1 }}>
-        <div style={{
-          fontFamily: "monospace", fontSize: "0.4rem",
-          letterSpacing: "0.2em", textTransform: "uppercase",
-          color: "rgba(255,255,255,0.3)", marginBottom: "2px",
-        }}>{c.label}</div>
-        <div style={{
-          fontFamily: "monospace", fontSize: "0.58rem",
-          color: "rgba(255,255,255,0.75)", letterSpacing: "0.03em",
-        }}>{c.value}</div>
-      </div>
-      {c.href && (
-        <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "0.7rem" }}>↗</span>
-      )}
-    </>
-  );
-
-  return c.href ? (
-    
-      href={c.href}
-      target="_blank"
-      rel="noopener noreferrer"
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={sharedStyle}
-    >{inner}</a>
-  ) : (
-    <div
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={sharedStyle}
-    >{inner}</div>
-  );
-}
-
-function ResumeRow({ visible, delay }: { visible: boolean; delay: number }) {
-  const [hov, setHov] = useState(false);
-  return (
-    
-      href="https://drive.google.com/file/d/1_R308lI7gd6BpiOoGe_HqF-VeKpSDKfX/view?usp=drivesdk"
-      target="_blank"
-      rel="noopener noreferrer"
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        display: "flex", alignItems: "center", gap: "14px",
-        padding: "11px 16px",
-        border: `1px solid ${hov ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.12)"}`,
-        borderRadius: "10px",
-        background: hov ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.03)",
-        textDecoration: "none", cursor: "pointer",
-        transition: "all 0.2s ease",
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateX(0)" : "translateX(-16px)",
-        transitionDelay: `${delay}ms`,
-      }}
-    >
-      <span style={{
-        fontFamily: "monospace", fontSize: "0.85rem",
-        color: "white", width: "22px", textAlign: "center",
-      }}>⬇</span>
-      <div style={{ flex: 1 }}>
-        <div style={{
-          fontFamily: "monospace", fontSize: "0.4rem",
-          letterSpacing: "0.2em", textTransform: "uppercase",
-          color: "rgba(255,255,255,0.3)", marginBottom: "2px",
-        }}>Resume</div>
-        <div style={{
-          fontFamily: "monospace", fontSize: "0.58rem",
-          color: "rgba(255,255,255,0.75)",
-        }}>View / Download CV</div>
-      </div>
-      <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "0.7rem" }}>↗</span>
-    </a>
-  );
-}
+import emailjs from '@emailjs/browser';
 
 export default function ContactPage({ onExitToProjects }: { onExitToProjects?: () => void }) {
   const [visible, setVisible] = useState(false);
-  const [messages, setMessages] = useState<{ role: "user" | "bot"; text: string }[]>([
-    { role: "bot", text: "Hey 👋 I'm Mansha's assistant. Leave a message and I'll make sure she sees it." },
-  ]);
-  const [input, setInput] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const lockRef = useRef(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+
+  const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 100);
+    const t = setTimeout(() => setVisible(true), 200);
     return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  useEffect(() => {
+    const lockRef = { locked: false };
     const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (e.deltaY < 0 && !lockRef.current) {
-        lockRef.current = true;
-        if (onExitToProjects) onExitToProjects();
-        setTimeout(() => { lockRef.current = false; }, 800);
+      if (e.deltaY < -60 && !lockRef.locked) {
+        lockRef.locked = true;
+        onExitToProjects?.();
+        setTimeout(() => { lockRef.locked = false; }, 1000);
       }
     };
-    window.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("wheel", onWheel, { passive: true });
     return () => window.removeEventListener("wheel", onWheel);
   }, [onExitToProjects]);
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
-    const userMsg = input.trim();
-    setInput("");
-    setMessages(prev => [...prev, { role: "user", text: userMsg }]);
+  // REMOVED emailjs.init() - we'll pass key directly in send()
+
+  const handleSend = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    if (!name.trim() || !email.trim() || !message.trim()) {
+      setError("Please fill in all required fields");
+      return;
+    }
+
     setSending(true);
+    setError("");
 
     try {
-      await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg, from: "Portfolio visitor" }),
-      });
-    } catch {}
+      const templateParams = {
+        name: name,
+        email: email,
+        subject: subject || "Portfolio Message",
+        message: message,
+      };
 
-    setTimeout(() => {
-      setMessages(prev => [...prev, {
-        role: "bot",
-        text: "Thanks! Mansha will get back to you at mansha.mundhra2005@gmail.com 🙌",
-      }]);
+      console.log("Sending with:", {
+        service: "service_efihsfl",
+        template: "template_5hu2sas",
+        params: templateParams,
+        publicKey: "vbVcs1zCR-e0s6oKa" // Verify this is EXACT
+      });
+
+      const result = await emailjs.send(
+        "service_efihsfl",        // Your Service ID
+        "template_5hu2sas",       // Your Template ID
+        templateParams,
+        "vbVcs1zCR-e0s6oKa"   // Your Public Key (with lowercase L)
+      );
+
+      console.log("Success! Result:", result);
+
+      if (result.status === 200) {
+        setSent(true);
+        setName("");
+        setEmail("");
+        setSubject("");
+        setMessage("");
+        setTimeout(() => setSent(false), 3000);
+      }
+    } catch (err: any) {
+      console.error("Full error object:", err);
+      console.error("Error status:", err?.status);
+      console.error("Error text:", err?.text);
+      console.error("Error message:", err?.message);
+      
+      setError(err?.text || err?.message || "Failed to send message");
+    } finally {
       setSending(false);
-    }, 800);
+    }
+  };
+
+  const inputStyle: React.CSSProperties = {
+    color: "#3d0c0c",
+    background: "transparent",
+    border: "none",
+    borderBottom: "1px solid rgba(61,12,12,0.2)",
+    padding: "10px 0",
+    fontSize: "0.82rem",
+    outline: "none",
+    width: "100%",
+    fontFamily: "monospace",
+    letterSpacing: "0.02em",
+    transition: "border-color 0.25s ease",
   };
 
   return (
     <div style={{
-      width: "100%", height: "100%",
-      background: "#060608",
+      width: "100%",
+      height: "100%",
+      background: "#3d0c0c",
       position: "relative",
       overflow: "hidden",
       display: "flex",
-      flexDirection: "column",
+      alignItems: "center",
       justifyContent: "center",
-      padding: "40px 80px",
+      padding: "40px 60px",
+      boxSizing: "border-box",
     }}>
 
-      {/* Grid */}
+      {/* Subtle noise texture */}
       <div style={{
-        position: "absolute", inset: 0,
-        backgroundImage: `
-          linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)
-        `,
-        backgroundSize: "48px 48px",
+        position: "absolute", inset: 0, pointerEvents: "none",
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E")`,
+        opacity: 0.5,
+      }} />
+
+      {/* Radial ambient */}
+      <div style={{
+        position: "absolute", top: "50%", left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: "800px", height: "600px",
+        background: "radial-gradient(ellipse, rgba(80,10,10,0.5) 0%, transparent 70%)",
         pointerEvents: "none",
       }} />
 
-      {/* BG image bottom right */}
-      <div style={{
-        position: "absolute",
-        bottom: "-20px", right: "-20px",
-        width: "400px", height: "400px",
-        opacity: 0.1,
-        pointerEvents: "none",
-        zIndex: 0,
-      }}>
-        <Image
-          src="/contact.jpeg"
-          alt=""
-          fill
-          style={{ objectFit: "contain", objectPosition: "bottom right" }}
-        />
-      </div>
-
-      {/* Ambient glow */}
-      <div style={{
-        position: "absolute",
-        bottom: "5%", right: "5%",
-        width: "500px", height: "500px",
-        borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(167,139,250,0.06) 0%, transparent 70%)",
-        filter: "blur(40px)",
-        pointerEvents: "none",
-        zIndex: 0,
-      }} />
-
-      {/* Content */}
-      <div style={{
+      {/* Main card */}
+      <div ref={formRef} style={{
         position: "relative", zIndex: 2,
-        display: "flex", flexDirection: "column",
-        gap: "28px", maxWidth: "960px", width: "100%",
+        display: "grid",
+        gridTemplateColumns: "1fr 2fr",
+        gap: "0",
+        width: "100%",
+        maxWidth: "1000px",
+        maxHeight: "85vh",
+        background: "#f0e6d3",
+        borderRadius: "16px",
+        border: "1px solid rgba(139,90,60,0.2)",
+        overflow: "hidden",
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(24px)",
+        transition: "opacity 0.7s ease, transform 0.7s ease",
       }}>
 
-        {/* Heading */}
+        {/* ── LEFT: Contact info ── */}
         <div style={{
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(-12px)",
-          transition: "opacity 0.6s ease, transform 0.6s ease",
-        }}>
-          <p style={{
-            fontSize: "0.45rem", letterSpacing: "0.5em",
-            textTransform: "uppercase", fontFamily: "monospace",
-            color: "rgba(255,255,255,0.22)", marginBottom: "5px",
-          }}>get in touch</p>
-          <h2 style={{
-            fontSize: "clamp(1.8rem, 3vw, 2.8rem)",
-            fontFamily: "Georgia, serif", fontWeight: "900",
-            textTransform: "uppercase", letterSpacing: "0.1em",
-            color: "white", margin: 0,
-          }}>Contact</h2>
-        </div>
-
-        {/* Two columns */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
+          padding: "44px 36px",
+          borderRight: "1px solid rgba(61,12,12,0.12)",
+          display: "flex",
+          flexDirection: "column",
           gap: "32px",
-          alignItems: "start",
+          background: "rgba(0,0,0,0.12)",
         }}>
-
-          {/* LEFT — links */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {CONTACTS.map((c, i) => (
-              <ContactRow key={c.label} c={c} i={i} visible={visible} />
-            ))}
-            <ResumeRow visible={visible} delay={CONTACTS.length * 70} />
+          {/* Label */}
+          <div>
+            <p style={{ fontSize: "0.42rem", letterSpacing: "0.4em", textTransform: "uppercase", color: "rgba(61,12,12,0.45)", margin: "0 0 6px", fontFamily: "monospace" }}>get in touch</p>
+            <h1 style={{ fontSize: "clamp(1.4rem, 2vw, 1.9rem)", fontWeight: 900, color: "#3d0c0c", margin: 0, textTransform: "uppercase", letterSpacing: "-0.01em" }}>
+              Contact Info
+            </h1>
           </div>
 
-          {/* RIGHT — chatbot */}
-          <div style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateX(0)" : "translateX(16px)",
-            transition: "opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s",
-            display: "flex", flexDirection: "column",
-            border: "1px solid rgba(255,255,255,0.07)",
-            borderRadius: "14px",
-            background: "rgba(255,255,255,0.02)",
-            overflow: "hidden",
-            height: "340px",
-          }}>
+          {/* Info rows */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
 
-            {/* Chat header */}
-            <div style={{
-              padding: "12px 16px",
-              borderBottom: "1px solid rgba(255,255,255,0.05)",
-              display: "flex", alignItems: "center", gap: "8px",
-            }}>
+            {/* Mail */}
+            <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
               <div style={{
-                width: "7px", height: "7px", borderRadius: "50%",
-                background: "#34d399", boxShadow: "0 0 6px #34d399",
-              }} />
-              <span style={{
-                fontFamily: "monospace", fontSize: "0.45rem",
-                letterSpacing: "0.2em", textTransform: "uppercase",
-                color: "rgba(255,255,255,0.35)",
-              }}>leave a message</span>
+                width: "34px", height: "34px", borderRadius: "8px", flexShrink: 0,
+                background: "rgba(61,12,12,0.08)", border: "1px solid rgba(61,12,12,0.15)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3d0c0c" strokeWidth="1.8">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/>
+                </svg>
+              </div>
+              <div>
+                <p style={{ fontSize: "0.42rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(61,12,12,0.4)", margin: "0 0 5px", fontFamily: "monospace" }}>MAIL US</p>
+                <p style={{ fontSize: "0.72rem", color: "#3d0c0c", margin: "0 0 2px", fontFamily: "monospace" }}>mansha.mundhra2005@gmail.com</p>
+              </div>
             </div>
 
-            {/* Messages */}
-            <div style={{
-              flex: 1, overflowY: "auto",
-              padding: "14px",
-              display: "flex", flexDirection: "column", gap: "8px",
-              scrollbarWidth: "none",
-            }}>
-              {messages.map((msg, i) => (
-                <div key={i} style={{
-                  display: "flex",
-                  justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
-                }}>
-                  <div style={{
-                    maxWidth: "82%",
-                    padding: "7px 12px",
-                    borderRadius: msg.role === "user"
-                      ? "12px 12px 2px 12px"
-                      : "12px 12px 12px 2px",
-                    background: msg.role === "user"
-                      ? "rgba(167,139,250,0.22)"
-                      : "rgba(255,255,255,0.05)",
-                    border: msg.role === "user"
-                      ? "1px solid rgba(167,139,250,0.35)"
-                      : "1px solid rgba(255,255,255,0.07)",
-                    fontFamily: "monospace", fontSize: "0.56rem",
-                    color: "rgba(255,255,255,0.8)",
-                    lineHeight: 1.6, letterSpacing: "0.02em",
-                  }}>
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-              {sending && (
-                <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                  <div style={{
-                    padding: "7px 12px",
-                    borderRadius: "12px 12px 12px 2px",
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.07)",
-                    fontFamily: "monospace", fontSize: "0.56rem",
-                    color: "rgba(255,255,255,0.3)",
-                  }}>...</div>
-                </div>
-              )}
-              <div ref={chatEndRef} />
+            {/* GitHub */}
+            <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
+              <div style={{
+                width: "34px", height: "34px", borderRadius: "8px", flexShrink: 0,
+                background: "rgba(61,12,12,0.08)", border: "1px solid rgba(61,12,12,0.15)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#3d0c0c">
+                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.014-1.703-2.782.604-3.369-1.341-3.369-1.341-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+                </svg>
+              </div>
+              <div>
+                <p style={{ fontSize: "0.42rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(61,12,12,0.4)", margin: "0 0 5px", fontFamily: "monospace" }}>GITHUB</p>
+                <a href="https://github.com/MANSAMUNDHRA" target="_blank" rel="noreferrer" style={{ fontSize: "0.72rem", color: "#3d0c0c", margin: 0, fontFamily: "monospace", textDecoration: "none", borderBottom: "1px solid rgba(61,12,12,0.25)" }}>MANSAMUNDHRA ↗</a>
+              </div>
             </div>
 
-            {/* Input */}
-            <div style={{
-              padding: "10px 14px",
-              borderTop: "1px solid rgba(255,255,255,0.05)",
-              display: "flex", gap: "8px",
-            }}>
-              <input
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter") sendMessage(); }}
-                placeholder="Type a message..."
-                style={{
-                  flex: 1,
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: "8px",
-                  padding: "7px 11px",
-                  fontFamily: "monospace", fontSize: "0.56rem",
-                  color: "white", outline: "none",
-                  letterSpacing: "0.03em",
-                }}
-                onFocus={e => {
-                  (e.target as HTMLElement).style.borderColor = "rgba(167,139,250,0.5)";
-                }}
-                onBlur={e => {
-                  (e.target as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)";
-                }}
-              />
-              <button
-                onClick={sendMessage}
-                disabled={!input.trim() || sending}
-                style={{
-                  padding: "7px 14px",
-                  borderRadius: "8px",
-                  background: input.trim()
-                    ? "rgba(167,139,250,0.85)"
-                    : "rgba(255,255,255,0.05)",
-                  border: "none",
-                  cursor: input.trim() ? "pointer" : "default",
-                  fontFamily: "monospace", fontSize: "0.5rem",
-                  letterSpacing: "0.1em", textTransform: "uppercase",
-                  color: input.trim() ? "white" : "rgba(255,255,255,0.2)",
-                  transition: "all 0.2s ease",
-                }}
-              >Send</button>
+            {/* LinkedIn */}
+            <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
+              <div style={{
+                width: "34px", height: "34px", borderRadius: "8px", flexShrink: 0,
+                background: "rgba(61,12,12,0.08)", border: "1px solid rgba(61,12,12,0.15)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#3d0c0c">
+                  <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/>
+                </svg>
+              </div>
+              <div>
+                <p style={{ fontSize: "0.42rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(61,12,12,0.4)", margin: "0 0 5px", fontFamily: "monospace" }}>LINKEDIN</p>
+                <a href="https://www.linkedin.com/in/mansha-mundhra-155140283/" target="_blank" rel="noreferrer" style={{ fontSize: "0.72rem", color: "#3d0c0c", margin: 0, fontFamily: "monospace", textDecoration: "none", borderBottom: "1px solid rgba(61,12,12,0.25)" }}>mansha-mundhra ↗</a>
+              </div>
             </div>
+
+            {/* Instagram */}
+            <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
+              <div style={{
+                width: "34px", height: "34px", borderRadius: "8px", flexShrink: 0,
+                background: "rgba(61,12,12,0.08)", border: "1px solid rgba(61,12,12,0.15)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3d0c0c" strokeWidth="1.8">
+                  <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="#3d0c0c"/>
+                </svg>
+              </div>
+              <div>
+                <p style={{ fontSize: "0.42rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(61,12,12,0.4)", margin: "0 0 5px", fontFamily: "monospace" }}>INSTAGRAM</p>
+                <a href="https://www.instagram.com/manshamundhra19" target="_blank" rel="noreferrer" style={{ fontSize: "0.72rem", color: "#3d0c0c", margin: 0, fontFamily: "monospace", textDecoration: "none", borderBottom: "1px solid rgba(61,12,12,0.25)" }}>@manshamundhra19 ↗</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── RIGHT: form ── */}
+        <div style={{
+          padding: "44px 44px",
+          display: "flex",
+          flexDirection: "column",
+        }}>
+          <div style={{ marginBottom: "28px" }}>
+            <p style={{ fontSize: "0.42rem", letterSpacing: "0.4em", textTransform: "uppercase", color: "rgba(61,12,12,0.45)", margin: "0 0 6px", fontFamily: "monospace" }}>reach out</p>
+            <h2 style={{ fontSize: "clamp(1.3rem, 1.8vw, 1.7rem)", fontWeight: 900, color: "#3d0c0c", margin: 0, textTransform: "uppercase", letterSpacing: "-0.01em" }}>
+              Send Message
+            </h2>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "18px", flex: 1 }}>
+            {error && (
+              <div style={{
+                padding: "8px 12px",
+                background: "rgba(255,0,0,0.1)",
+                border: "1px solid rgba(255,0,0,0.3)",
+                borderRadius: "4px",
+                color: "#3d0c0c",
+                fontSize: "0.65rem",
+                fontFamily: "monospace",
+              }}>
+                {error}
+              </div>
+            )}
+            
+            <input
+              type="text" placeholder="Name *" value={name} onChange={e => setName(e.target.value)}
+              style={inputStyle}
+              disabled={sending}
+              onFocus={e => e.currentTarget.style.borderColor = "rgba(61,12,12,0.6)"}
+              onBlur={e => e.currentTarget.style.borderColor = "rgba(61,12,12,0.2)"}
+            />
+            <input
+              type="email" placeholder="Email *" value={email} onChange={e => setEmail(e.target.value)}
+              style={inputStyle}
+              disabled={sending}
+              onFocus={e => e.currentTarget.style.borderColor = "rgba(61,12,12,0.6)"}
+              onBlur={e => e.currentTarget.style.borderColor = "rgba(61,12,12,0.2)"}
+            />
+            <input
+              type="text" placeholder="Subject" value={subject} onChange={e => setSubject(e.target.value)}
+              style={inputStyle}
+              disabled={sending}
+              onFocus={e => e.currentTarget.style.borderColor = "rgba(61,12,12,0.6)"}
+              onBlur={e => e.currentTarget.style.borderColor = "rgba(61,12,12,0.2)"}
+            />
+            <textarea
+              placeholder="Message *" value={message} onChange={e => setMessage(e.target.value)}
+              rows={4}
+              style={{ ...inputStyle, resize: "none" } as React.CSSProperties}
+              disabled={sending}
+              onFocus={e => e.currentTarget.style.borderColor = "rgba(61,12,12,0.6)"}
+              onBlur={e => e.currentTarget.style.borderColor = "rgba(61,12,12,0.2)"}
+            />
+            <button
+              onClick={handleSend}
+              disabled={sending || sent}
+              style={{
+                background: sending ? "rgba(61,12,12,0.3)" : sent ? "rgba(61,12,12,0.15)" : "#3d0c0c",
+                border: "1px solid #3d0c0c",
+                borderRadius: "6px",
+                padding: "12px 0",
+                color: sending ? "#f0e6d3" : sent ? "#3d0c0c" : "#f0e6d3",
+                fontSize: "0.52rem",
+                fontFamily: "monospace",
+                fontWeight: 700,
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+                cursor: sending || sent ? "default" : "pointer",
+                width: "100%",
+                marginTop: "6px",
+                transition: "all 0.25s ease",
+                opacity: sending ? 0.7 : 1,
+              }}
+              onMouseEnter={e => {
+                if (!sending && !sent) {
+                  e.currentTarget.style.background = "rgba(61,12,12,0.85)";
+                }
+              }}
+              onMouseLeave={e => {
+                if (!sending && !sent) {
+                  e.currentTarget.style.background = "#3d0c0c";
+                }
+              }}
+            >
+              {sending ? "SENDING..." : sent ? "✓ SENT" : "SEND MESSAGE"}
+            </button>
+          </div>
+
+          {/* Sign-off */}
+          <div style={{ marginTop: "auto", paddingTop: "20px" }}>
+            <p style={{ fontSize: "0.42rem", letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(61,12,12,0.3)", fontFamily: "monospace", margin: 0 }}>— MANSHA MUNDHRA</p>
           </div>
         </div>
       </div>
